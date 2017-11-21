@@ -1,7 +1,9 @@
 from RSA import *
+import sys
 
 if __name__ == '__main__':
-    message = 'clues.txt'
+#    message = 'clues.txt'
+    message = sys.argv[1]
     encoded = 'encoded.txt'
     N, E, D = gen_rsa_key()
 #    N, E, D = 2051, 307, 331

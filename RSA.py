@@ -1,5 +1,6 @@
 # RSA Encryption/Decryption
 # Jiashu Han
+import sys
 import numpy as np, random as r
 length = 10
 codebook = ['a','A','b','B','c','C','d','D','e','E','f','F','g','G','h','H','i','I','j','J','k','K','l','L','m','M','n','N','o','O','p','P','q','Q','r','R','s','S','t','T','u','U','v','V','w','W','x','X','y','Y','z','Z',' ',',','.',';',':','!','?','/','"',"'",'<','>','(',')','[',']','{','}','-','_','=','+','\\','`','~','@','#','$','%','^','&','*','0','1','2','3','4','5','6','7','8','9','Ω','†','∑','π','∆','µ'] # the characters can be in any order
@@ -10,7 +11,7 @@ def encrypt(path, key):
     m_code = convert(message)
     c_code = rsa(key, m_code)
     encoded = encode(join_codes(c_code))
-    print("CODE:\n", encoded)
+    print("ENCODED MESSAGE:\n", encoded)
     save_file(encoded, 'encoded.txt')
     print('--------saved as encoded.txt in the working directory.--------')
 
@@ -220,23 +221,30 @@ def neg_mod(dividend, divisor):
     return result
 
 if __name__ == '__main__':
-    while True:
-        print("NOTE: This program supports 76 characters (not including '?').")
-        task = input('To encrypt, enter 1; to decrypt, enter 2; to get a key, enter 3:\n>> ')
-        if task == '1': # encryption
-            hasKey = input('Do you have a key? Y/N:\n>> ')
-            if hasKey == 'n':
+    if len(sys.argv) > 1 and sys.argv[1] == 'key':
+        gen_rsa_key()
+    elif len(sys.argv) > 1 and sys.argv[1] == 'encrypt':
+        encrypt(sys.argv[2], (sys.argv[3], sys.argv[4]))
+    elif len(sys.argv) > 1 and sys.argv[1] == 'decrypt':
+        decrypt(sys.argv[2], (sys.argv[3], sys.argv[4]))
+    else:   # interactive mode
+        while True:
+            print("NOTE: This program supports 76 characters (not including '?').")
+            task = input('To encrypt, enter 1; to decrypt, enter 2; to get a key, enter 3:\n>> ')
+            if task == '1': # encryption
+                hasKey = input('Do you have a key? Y/N:\n>> ')
+                if hasKey == 'n':
+                    gen_rsa_key()
+                path = input('Please enter the path of the file:\n>> ')
+                N = input('Please enter N (N>75):\n>> ') # this is to ensure the transformation from characters to codes is bijective
+                E = input('Please enter E:\n>> ')
+                keys = [int(N), int(E)]
+                encrypt(path, keys)
+            if task == '2':   # Calls the decryption procedure
+                path = input('Please enter the path of the file:\n>> ')
+                N = input('Please enter N (N>75):\n>> ')
+                D = input('Please enter D:\n>> ')
+                keys = [int(N), int(D)]
+                decrypt(path, keys)
+            if task == '3':
                 gen_rsa_key()
-            path = input('Please enter the path of the file:\n>> ')
-            N = input('Please enter N (N>75):\n>> ') # this is to ensure the transformation from characters to codes is bijective
-            E = input('Please enter E:\n>> ')
-            keys = [int(N), int(E)]
-            encrypt(path, keys)
-        if task == '2':   # Calls the decryption procedure
-            path = input('Please enter the path of the file:\n>> ')
-            N = input('Please enter N (N>75):\n>> ')
-            D = input('Please enter D:\n>> ')
-            keys = [int(N), int(D)]
-            decrypt(path, keys)
-        if task == '3':
-            gen_rsa_key()
