@@ -9,19 +9,19 @@ def encrypt(path, key):
     message = load_file(path)
     m_code = convert(message)
     c_code = rsa(key, m_code)
-    c_code_str = join_codes(c_code)
-    encoded = encode(c_code_str)
+    encoded = encode(join_codes(c_code))
     print("CODE:\n", encoded)
     save_file(encoded, 'encoded.txt')
     print('--------saved as encoded.txt in the working directory.--------')
 
+# join numbers in array as one single string
 def join_codes(codes):
     code = ""
     for i in codes.astype(str):
         code += "0"*(length-len(i))+i
     return code
 
-# turn c_code (numbers) into characters
+# turn c_code (number) into characters
 def encode(code_string):
     index = 0
     array = []
