@@ -8,14 +8,15 @@ def encrypt(path, key):
     m_code = convert(message)
     c_code = rsa(key, m_code)
     print(c_code)
-    save_file(" ".join(c_code.astype(str)), 'encoded.txt')
+    c_code_str = " ".join(c_code.astype(str))   #######
+    save_file(c_code_str, 'encoded.txt')
     print('saved as encoded.txt in the working directory.')
 
 # decryption procedure
 def decrypt(path, key):
     c_code = load_encrypted_file(path)
     m_code = rsa(key, c_code)
-    m_code1 = m_code.astype(int)   # it appears that 'convert' only accepts integers
+    m_code1 = m_code.astype(int)
     message = convert(m_code1, code=True)
     print(message)
     save_file(message, 'decoded.txt')
@@ -28,8 +29,8 @@ def load_file(path):
     for line in f:
         lines.append(line)
     f.close()
-    delimiter = ' '
-    words = delimiter.join(lines)
+    delim = ' '
+    words = delim.join(lines)
     characters = list(words)
     return characters
 
@@ -37,10 +38,9 @@ def load_file(path):
 def load_encrypted_file(path):
     f = open(path, 'r')
     codes = []
-    delimiter = ' '
+    delim = ' '
     for line in f:
-        print(line)
-        codes.extend(line.split(delimiter))
+        codes.extend(line.split(delim))
     f.close()
     codes = np.array(codes)
     return codes.astype(float).astype(int)
@@ -63,8 +63,8 @@ def convert(text_or_code, code=False):
             for j in range(len(codebook)):
                 if j == code1[i]:
                     text.append(codebook[j])
-        delimiter = ''
-        return delimiter.join(text)
+        delim = ''
+        return delim.join(text)
 
 # returns the first n primes
 def primes(n):
@@ -82,23 +82,20 @@ def primes(n):
         i += 1
     return result
 
-# THIS IS BUGGY
-# generates a set of keys for the RSA encryption algorithm; it's not easy to deal with negative divisor
+# generates a set of keys for the RSA encryption algorithm
 def gen_rsa_key():
     n = -1
     while n < 0:
-        k1 = int(r.uniform(0, 100)) #the components of the key have to be greater than 75
-        k2 = int(r.uniform(0, 100))
-        k3 = int(r.uniform(0, 100))
+        k1 = int(r.uniform(0, 1000)) #the components of the key have to be greater than 75
+        k2 = int(r.uniform(0, 1000))
+        k3 = int(r.uniform(0, 1000))
         p = (primes(k1))[k1-1]
         q = (primes(k2))[k2-1]
         e = (primes(k3))[k3-1]
         n = p*q
-#       print,[p,q,e,n]
     k = 1
     while (k*(p-1)*(q-1)+1) % e != 0:
         k += 1
-#   print,k
     d = (k*(p-1)*(q-1)+1)/e
     print('N = %d,     E = %d,     D = %d'%(n, e, d))
     return (n, e, d)
@@ -111,18 +108,17 @@ def rsa(key, code):
     new_code_array = np.array([])
 ############################################
 # this is the same as:
-#     new_code=(code**e_d) % n
+#     new_code = (code**e_d) % n --> overflows
 ############################################
-# instead, we do:
     for i in range(len(code)):
         S = e_d
         k = 0                        # this helps keep track on how many steps it has taken
         B = code[i]
         array_A = []
         array_B = [B]
-        while S > 10:     # all the loops and case statements below are to prevent the numbers from getting too big
+        while S > 10:   # everything below is used to prevent the numbers from getting too big
             R = S % 10
-            S = (S-R)/10              # code^e_d=code^R*code^10S
+            S = (S-R)/10              # code^e_d = code^R*code^10S
             if B > 75:
                 M1 = B**2 % n         #B^2
                 M2 = M1**2 % n        #B^4
@@ -142,23 +138,21 @@ def rsa(key, code):
                 }
                 A = casesR.get(R)
             else:
-                A = B**R % n          # or A=(array_B[k])^R mod n
-            if B > 75:   # B^10 may also exceed 1.8E19
+                A = B**R % n          # or A = (array_B[k])^R mod n
+            if B > 75:   # B^10 may be > 1.8E19
                 M1 = B**2 % n
                 M2 = M1**2 % n
                 M3 = M2**2 % n
                 B = (M1*M3) % n
             else:
-                B = B**10 % n         # or B=(array_B[k])^10 mod n. this is at most 74
+                B = B**10 % n         # or B = (array_B[k])^10 mod n. this is at most 74
             array_A.append(A)
             array_B.append(B)
-#           print,[r,s,a,b]         ;this is for debugging
             k+=1    # pmax/qmax/emax=541,nmax=30537,dmax=291061-->max steps taken=5
-# the for loop below is equivalent to C=ulong64(product(array_A))
+        # below is equivalent to C = int(product(array_A))
         C = array_A[0]               # based on calculation, x^e_d MOD n=(A1*A2*...*Ak*Bk^Sk) MOD n
         for j in range(len(array_A)-1):
             C = (C*(array_A[j+1])) % n
-#       print, c
         if array_B[k] > 75:
             M1 = (array_B[k])**2 % n # array_B[k]^2
             M2 = M1**2 % n           # array_B[k]^4
@@ -179,10 +173,9 @@ def rsa(key, code):
             D = casesS.get(S)
         else:
             D = (array_B[k])**S
-#       print d
         new_code = ((C % n)*(D % n)) % n
         new_code_array = np.append(new_code_array, new_code)
-    return new_code_array
+    return new_code_array.astype(int)
 
 # saves the result into another .txt file
 def save_file(message, filename):
