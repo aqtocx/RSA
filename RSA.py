@@ -1,16 +1,23 @@
 # RSA Encryption/Decryption
 # Jiashu Han
 import numpy as np, random as r
+length = 10
 
 # encryption procedure
 def encrypt(path, key):
     message = load_file(path)
     m_code = convert(message)
     c_code = rsa(key, m_code)
-    print(c_code)
-    c_code_str = " ".join(c_code.astype(str))   #######
+    c_code_str = join_codes(c_code)
+    print("CODE:\n", c_code_str)
     save_file(c_code_str, 'encoded.txt')
-    print('saved as encoded.txt in the working directory.')
+    print('--------saved as encoded.txt in the working directory.--------')
+
+def join_codes(codes):
+    code = ""
+    for i in codes.astype(str):
+        code += "0"*(length-len(i))+i
+    return code
 
 # decryption procedure
 def decrypt(path, key):
@@ -18,9 +25,9 @@ def decrypt(path, key):
     m_code = rsa(key, c_code)
     m_code1 = m_code.astype(int)
     message = convert(m_code1, code=True)
-    print(message)
+    print("MESSAGE:\n", message)
     save_file(message, 'decoded.txt')
-    print('saved as decoded.txt in the working directory.')
+    print('--------saved as decoded.txt in the working directory.--------')
 
 # loads the message from file
 def load_file(path):
@@ -38,9 +45,11 @@ def load_file(path):
 def load_encrypted_file(path):
     f = open(path, 'r')
     codes = []
-    delim = ' '
     for line in f:
-        codes.extend(line.split(delim))
+        index = 0
+        while index+length < len(line):
+            codes.append(line[index:index+length])
+            index += length
     f.close()
     codes = np.array(codes)
     return codes.astype(float).astype(int)
