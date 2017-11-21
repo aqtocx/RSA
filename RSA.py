@@ -2,6 +2,7 @@
 # Jiashu Han
 import numpy as np, random as r
 length = 10
+codebook = ['a','A','b','B','c','C','d','D','e','E','f','F','g','G','h','H','i','I','j','J','k','K','l','L','m','M','n','N','o','O','p','P','q','Q','r','R','s','S','t','T','u','U','v','V','w','W','x','X','y','Y','z','Z',' ',',','.',';',':','!','?','/','"',"'",'<','>','(',')','[',']','{','}','-','_','=','+','\\','`','~','@','#','$','%','^','&','*','0','1','2','3','4','5','6','7','8','9','Ω','†','∑','π','∆','µ'] # the characters can be in any order
 
 # encryption procedure
 def encrypt(path, key):
@@ -9,8 +10,9 @@ def encrypt(path, key):
     m_code = convert(message)
     c_code = rsa(key, m_code)
     c_code_str = join_codes(c_code)
-    print("CODE:\n", c_code_str)
-    save_file(c_code_str, 'encoded.txt')
+    encoded = encode(c_code_str)
+    print("CODE:\n", encoded)
+    save_file(encoded, 'encoded.txt')
     print('--------saved as encoded.txt in the working directory.--------')
 
 def join_codes(codes):
@@ -18,6 +20,16 @@ def join_codes(codes):
     for i in codes.astype(str):
         code += "0"*(length-len(i))+i
     return code
+
+# turn c_code (numbers) into characters
+def encode(code_string):
+    index = 0
+    array = []
+    while index+2 < len(code_string):
+        array.append(int(code_string[index:index+2]))
+        index += 2
+    encoded = convert(array, code=True)
+    return encoded
 
 # decryption procedure
 def decrypt(path, key):
@@ -46,6 +58,7 @@ def load_encrypted_file(path):
     f = open(path, 'r')
     codes = []
     for line in f:
+        line = decode(line)
         index = 0
         while index+length < len(line):
             codes.append(line[index:index+length])
@@ -54,9 +67,15 @@ def load_encrypted_file(path):
     codes = np.array(codes)
     return codes.astype(float).astype(int)
 
+# turn encoded message into number
+def decode(encoded_m):
+    encoded_arr = np.array(convert(list(encoded_m))).astype(str)
+    for i in range(len(encoded_arr)):
+        encoded_arr[i] = '0'*(2-len(encoded_arr[i]))+encoded_arr[i]
+    return "".join(list(encoded_arr))
+
 # converts letters and symbols to numbers; code must be an integer array; cannot use '?', this is problematic
 def convert(text_or_code, code=False):
-    codebook = ['a','A','b','B','c','C','d','D','e','E','f','F','g','G','h','H','i','I','j','J','k','K','l','L','m','M','n','N','o','O','p','P','q','Q','r','R','s','S','t','T','u','U','v','V','w','W','x','X','y','Y','z','Z',' ',',','.',';',':','!','"',"'",'(',')','[',']','-','0','1','2','3','4','5','6','7','8','9', '\n'] # the characters can be in any order
     if not code: # converts text to code
         code = []
         for i in range(len(text_or_code)):
